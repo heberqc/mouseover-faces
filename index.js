@@ -37,5 +37,6 @@ const subcription = source$.subscribe(observer);
 
 subject.addEventListener('click', () => {
   subcription.unsubscribe();
+  subject.setAttribute('src', `https://raw.githubusercontent.com/heberqc/mouseover-faces/master/images/09.jpeg`);
   console.log("unsubscribed")
 });
