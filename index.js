@@ -2,6 +2,7 @@ console.clear();
 
 import './style.css';
 import { fromEvent } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 const subject = document.getElementById('subject');
 
@@ -26,17 +27,17 @@ const observer = {
     const cy = Y_0 - val.y;
     const angle = Math.round(Math.atan(cy/cx)*180/Math.PI + gap(cx, cy));
     subject.setAttribute('src', `https://raw.githubusercontent.com/heberqc/mouseover-faces/master/images/${faceSwitch(angle)}.jpeg`);
-    console.log(`(${cx}, ${cy})`, angle);
+    console.log(`(${cx}, ${cy})`, `${angle}◦`);
   },
   error: err => console.log('error', err),
-  complete: () => console.log('Complete!')
+  complete: () => {
+    subject.setAttribute('src', `https://raw.githubusercontent.com/heberqc/mouseover-faces/master/images/09.jpeg`);
+    console.log('Complete!');
+  },
 };
 
-const source$ = fromEvent(document, 'mousemove');
-const subcription = source$.subscribe(observer);
+const face$ = fromEvent(subject, 'mousemove');
+const stopButton = fromEvent(subject, 'click');
 
-subject.addEventListener('click', () => {
-  subcription.unsubscribe();
-  subject.setAttribute('src', `https://raw.githubusercontent.com/heberqc/mouseover-faces/master/images/09.jpeg`);
-  console.log("unsubscribed")
-});
+const source$ = fromEvent(document, 'mousemove').pipe(takeUntil(stopButton));
+const subcription = source$.subscribe(observer);
