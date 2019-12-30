@@ -1,8 +1,8 @@
 console.clear();
 
 import './style.css';
-import { fromEvent } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { merge, fromEvent } from 'rxjs';
+import { map, pairwise, takeUntil } from 'rxjs/operators';
 
 const subject = document.getElementById('subject');
 
@@ -23,6 +23,10 @@ const faceSwitch = angle => {
 
 const observer = {
   next: val => {
+    if (val.onface) {
+      subject.setAttribute('src', `https://raw.githubusercontent.com/heberqc/mouseover-faces/master/images/00.jpeg`);
+      return;
+    }
     const cx = val.x - X_0;
     const cy = Y_0 - val.y;
     const angle = Math.round(Math.atan(cy/cx)*180/Math.PI + gap(cx, cy));
@@ -36,8 +40,16 @@ const observer = {
   },
 };
 
-const face$ = fromEvent(subject, 'mousemove');
 const stopButton = fromEvent(subject, 'click');
+const face$ = fromEvent(subject, 'mousemove').pipe(takeUntil(stopButton), map(ev => ({ x: ev.x, y: ev.y, onface: true })));
+const angles$ = fromEvent(document, 'mousemove').pipe(takeUntil(stopButton));
+const source$ = merge(face$, angles$).pipe(
+  pairwise(),
+  map(arr => ({
+    x: arr[1].x,
+    y: arr[1].y,
+    onface: arr[0]. onface || arr[1]. onface || false,
+  })),
+);
 
-const source$ = fromEvent(document, 'mousemove').pipe(takeUntil(stopButton));
 const subcription = source$.subscribe(observer);
